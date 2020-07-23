@@ -16,9 +16,7 @@ const pubnubConfig = Object.assign(
       restore: true,       // Ensure that subscriptions will be retained if the network connection is lost
       uuid: generatedName, // Our connection unique identifier, very important to avoid being charged for the same user in MAU mode.
       ssl: true, //Encrypted end to end from  browser to PubNub network.
-      presenceTimeout: 130, // 
-      logVerbosity: false, //Show more in the browser console when enabled.
-      heartbeatInterval: 0 //
+      presenceTimeout: 120, // 
   },
   keyConfiguration //Our keys extracted from the config directory in  the  pubnub-keys.json file
 );
@@ -26,15 +24,11 @@ const pubnubConfig = Object.assign(
 //This is where you define the Live Event Properties.
 export const appData: AppState = {
   maxMessagesInList: 200, //Max number of messages at most in the message list.
-  messageListFilter: `language_tone != 'offensive'`, //See README before changing this value.
   selfAvatar: "https://robohash.org/"+generatedName+".jpg?size=50x50&set=set1", //The URL for the avatar graphic file
   selfName: generatedName,
   messages: [], //Array of UserMessages.
   pubnubConf: pubnubConfig,  //This is our configuration for the channel used for exchanging messages among event participants.  
-  defaultchannel: {
-    channels: ['global'], //Only one channel, split in different rows if required and load in props, can be set by load balancer.
-    withPresence: true //Presence can be set to false here.
-  },
+  defaultchannel: "global",
   pubnub: new PubNub({
     publishKey: pubnubConfig.publishKey,
     subscribeKey: pubnubConfig.subscribeKey
@@ -95,7 +89,6 @@ export class UserMessage implements Message {
 //This is the default settings for your chat app.
 export interface AppState {
   maxMessagesInList: number,
-  messageListFilter: string,
   message: string;
   selfAvatar: string,
   selfName: string,
@@ -151,7 +144,7 @@ export const appStateReducer = (state: AppState, action: Action): AppState => {
     }
     case "SEND_MESSAGE": {
       state.pubnub.publish({
-        channel: 'global',
+        channel: state.defaultchannel,
         message: {
           "message": action.payload,
           "UserAvatar": state.selfAvatar,
@@ -206,15 +199,28 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
     // });
 
       //Lets' subscribe on the default channel.
-      state.pubnub.subscribe(state.defaultchannel);
+      state.pubnub.subscribe({
+        channels: [state.defaultchannel], // Only one channel, split in different rows if required and load in props, can be set by load balancer.
+        withPresence: true, // Presence can be set to false here.
+      });
 
-
-      //In case our App MessageListFilter propery we filter.
-      if (state.messageListFilter.length > 0) {
-        console.log(`Filtering  message: ${state.messageListFilter}`);
-        state.pubnub.setFilterExpression(state.messageListFilter);
-      }
-      
+      //Get the history on the default channel.
+      state.pubnub.history(
+          {
+              channel: state.defaultchannel,
+              count: 100 // 100 is the default
+          },
+          (status, response) => {
+            if (typeof response.messages !== "undefined" && response.messages.length > 0) {
+              for (var i = 0; i <= response.messages.length; i++) {
+                dispatch({
+                  type: "ADD_MESSAGE",
+                  payload: response.messages[i].entry
+                });
+              }
+            }
+          }
+      );
 
     } catch (e) {
       console.log(`Subscribe error ${e.message}`);
