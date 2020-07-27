@@ -9,7 +9,7 @@ export const MessageListWrapper = styled.div`
   max-height: 100%;
   position: absolute;
   top: 0;
-  left: 0;
+  left: 150px;
   right: 0;
   bottom: 70px;
   text-align: left;

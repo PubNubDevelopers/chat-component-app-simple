@@ -2,6 +2,8 @@ import React, {useEffect, useState, useContext} from 'react'
 import {ChatDemoWrapper} from './ChatDemo.style'
 import {MessageListPanel} from '../MessageListPanel'
 import {MessageListPanelWrapper} from '../MessageListPanel/MessageListPanel.styles'
+import {ActiveUsersListPanel} from '../ActiveUsersListPanel'
+import {ActiveUsersListPanelWrapper} from '../ActiveUsersListPanel/ActiveUsersListPanel.styles'
 import {useAppState, AppStateProvider, AppStateContext} from '../../AppStateContext'
 
 interface ChatInitProps {
@@ -12,6 +14,9 @@ interface ChatInitProps {
 export const ChatDemo: React.SFC<ChatInitProps> = (props: ChatInitProps) => {
   return (
     <ChatDemoWrapper>
+      <ActiveUsersListPanelWrapper>
+        <ActiveUsersListPanel />
+      </ActiveUsersListPanelWrapper>
       <MessageListPanelWrapper>
         <MessageListPanel />
       </MessageListPanelWrapper>

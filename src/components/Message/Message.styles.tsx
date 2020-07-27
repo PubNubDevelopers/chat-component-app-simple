@@ -43,9 +43,8 @@ export const AvatarWrapper = styled.img`
   top: 20px;
   //margin-left: 14px;
   left: 7px;
-  width: 52px;
   //display: inline;
-  height: 30px;
+  height: 40px;
   width: auto;
   position: relative;
 `

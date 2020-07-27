@@ -1,43 +1,40 @@
-import React, {FunctionComponent, useReducer, useEffect, useState, useContext, useRef} from 'react'
+import React, {useCallback, FunctionComponent, useReducer, useEffect, useState, useContext, useRef} from 'react'
 import {MessageListWrapper} from './MessageList.styles'
 import {Message} from '../Message/Message'
-import {UserMessage, appStateReducer, appData, useAppState} from '../../AppStateContext'
+import {appStateReducer, appData, useAppState} from '../../AppStateContext'
 import {useScrollPosition} from '@n8tb1t/use-scroll-position'
 
 interface MessageListProps {
-  messages?: UserMessage[]
+  messages?: Array<any>
 }
 
 export const MessageList: React.SFC<MessageListProps> = (props: MessageListProps) => {
-  const {state} = useAppState()
-  const [stopOnScroll, setStopOnScroll] = useState(false)
-  const messagesEndRef = useRef(null) //This is our reference to the instance of this component in the DOM
+  const { state } = useAppState();
+  const [stopOnScroll, setStopOnScroll] = useState(false);
+  const messagesEndRef = useRef<null | HTMLDivElement>(null) //This is our reference to the instance of this component in the DOM
   //const listBottomPos = messagesEndRef.current.getBoundingClientRect().bottom;
   //console.log(`listBottomPos: ${listBottomPos}`);
   const scrollToBottom = () => {
-    !stopOnScroll && messagesEndRef && messagesEndRef.current
-      ? messagesEndRef.current.scrollIntoView({behavior: 'smooth'})
-      : {}
-  }
+   messagesEndRef?.current?.scrollIntoView({ block: "end", inline: "nearest", behavior: "smooth" });
+    }
 
-  useScrollPosition(({prevPos, currPos}) => {
+  useScrollPosition(({ prevPos, currPos }) => {
     //const bottom = messagesEndRef.current.scrollHeight - currPos.y;//=== e.target.clientHeight;
     const isShow = currPos.y > prevPos.y
-    console.log(`${isShow}`)
+    console.log(`${isShow}`);
     if (isShow !== stopOnScroll) setStopOnScroll(isShow)
   }, [])
 
   useEffect(scrollToBottom, [state.messages])
 
-  const Messages = Array.from(state.messages).map((onemessage: UserMessage) => {
-    //const elementRef = useRef();
+  const Messages = Array.from(state.messages).map((onemessage: Array<any>, i: number) => {
     return (
-      <>
+      <React.Fragment key={i}>
+        <Message message={onemessage} />
         <div ref={messagesEndRef} />
-        <Message message={onemessage} key={onemessage.key} />
-      </>
-    )
-  })
+      </React.Fragment>
+    );
+  });
 
   return <MessageListWrapper>{Messages}</MessageListWrapper>
 }

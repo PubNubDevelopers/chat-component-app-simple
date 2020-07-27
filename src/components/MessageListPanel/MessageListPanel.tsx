@@ -23,7 +23,7 @@ export const MessageListPanel: React.SFC<MessageListPanelProps> = (props: Messag
           <TextInputWrapper>
             <SendMessageField />
           </TextInputWrapper>
-          <EmojiInputWrapper src="/images/emojiInput@3x.png" />
+          {/*<EmojiInputWrapper src="/images/emojiInput@3x.png" />*/}
         </ComposeMessageBoxWrapper>
       </AppStateProvider>
     </div>

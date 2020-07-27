@@ -5,33 +5,24 @@ import keyConfiguration from "../src/config/pubnub-keys.json";
 import { debug } from "console";
 import Blank from './';
 
+const generatedName: string = generateName(); // This is the UUID that we use for identification. 
 
-const generatedName = generateName(); //This is our UUID that we use when needed for  messages.
-
-//This is the configuration for our PubNub connection.
-//We merge the keys from KeyConfiguration with basic configuration options for PubNub
-const pubnubConfig = Object.assign(
-  {},
-  {
-      restore: true,       // Ensure that subscriptions will be retained if the network connection is lost
-      uuid: generatedName, // Our connection unique identifier, very important to avoid being charged for the same user in MAU mode.
-      ssl: true, //Encrypted end to end from  browser to PubNub network.
-      presenceTimeout: 120, // 
-  },
-  keyConfiguration //Our keys extracted from the config directory in  the  pubnub-keys.json file
-);
-
-//This is where you define the Live Event Properties.
+//This is where you define the chat app properties.
 export const appData: AppState = {
-  maxMessagesInList: 200, //Max number of messages at most in the message list.
-  selfAvatar: "https://robohash.org/"+generatedName+".jpg?size=50x50&set=set1", //The URL for the avatar graphic file
-  selfName: generatedName,
-  messages: [], //Array of UserMessages.
-  pubnubConf: pubnubConfig,  //This is our configuration for the channel used for exchanging messages among event participants.  
-  defaultchannel: "global",
+  presence: true, // Enable or disable history.
+  presenceLastUpdated: 0, // Last time that a presence event was used to update the activeUsers list. Used to prevent duplicate events from triggering multiple calls to hereNow. 
+  history: true, // Enable or disable history.
+  historyMax: 10, // How many messages to load from history (max 100).
+  maxMessagesInList: 200, // Max number of messages at most in the message list.
+  selfAvatar: "https://ui-avatars.com/api/?name="+generatedName+"?size=100&rounded=true&uppercase=true&bold=true&background=fff&color=000", //The URL for the avatar graphic file
+  selfName: generatedName, // Set the display name to be the same as the UUID. You can make this whatever you want.
+  messages: [], // Array of UserMessages.
+  activeUsers: [], // Array of active users.
+  channel: "global", // The chat channel
   pubnub: new PubNub({
-    publishKey: pubnubConfig.publishKey,
-    subscribeKey: pubnubConfig.subscribeKey
+    publishKey: keyConfiguration.publishKey, // See config/pubnub-keys.json.
+    subscribeKey: keyConfiguration.subscribeKey, // See config/pubnub-keys.json.
+    uuid: generatedName // Use the UUID for identification on PubNub. 
   }),
   message: "",
 }
@@ -52,56 +43,34 @@ function generateName(): string{
   return (first + last);
 }
 
-interface User {
-  id: string,
-  username: string,
-}
-
-interface UserList {
-  id: string,
-  listname: string,
-  users: User[],
-}
-
-export interface Message {
-  internalKey: string ;
-}
-
-export class UserMessage implements Message {
-  message: string;
-  UserAvatar?: string;
-  senderName: string;
-
-  constructor(payload: string) {
-    const tmpKey = generateUUID();
-    this.internalKey = tmpKey;
-    var data = JSON.parse(payload);
-    if (!data.key ) {
-      throw new Error('Invalid message payload received: ' + payload);
-    }
-
-    this.message = data.message;
-    this.UserAvatar= data.UserAvatar;
-    this.senderName= data.senderName;
-  }
-}
-
 //This is the default settings for your chat app.
 export interface AppState {
+  presence: boolean,
+  presenceLastUpdated: number,
+  history: boolean,
+  historyMax: number,
   maxMessagesInList: number,
   message: string;
   selfAvatar: string,
   selfName: string,
-  messages: UserMessage[], //Where the  Messages from all participants to the event are stored.
+  messages: Array<string>,
+  activeUsers: Array<string>,
   pubnub: PubNub,
-  pubnubConf: typeof pubnubConfig, //Our link to PubNub
-  defaultchannel: SubscribeParameters //The default channel associated to the demo, should be associated with an Event.
+  channel: string 
 }
 
 type Action =
   {
     type: "ADD_MESSAGE",
     payload: string
+  }
+  | {
+    type: "ADD_HISTORY",
+    payload: Array<string>
+  }
+  | {
+    type: "ADD_ACTIVEUSERS",
+    payload: Array<string>
   }
   | {
     type: "SEND_MESSAGE",
@@ -133,21 +102,50 @@ export const appStateReducer = (state: AppState, action: Action): AppState => {
       const debugMerged: AppState = {
         ...state,
         messages: [
-          ...state.messages as Array<UserMessage>,
+          ...state.messages as Array<string>,
           {
-            ...action.payload
+            ...action.payload as Array<string>
           }
         ]
       };
 
       return debugMerged;
     }
+     //ADD_HISTORY prepends array of messages to our internal MessageList buffer.
+    case "ADD_HISTORY": {
+       const historyMerged: AppState = {
+        ...state,
+        messages: [
+          ...action.payload as Array<string>,
+          ...state.messages as Array<string>
+        ]
+      };
+
+      //If the messagelist is over our cap we discard the oldest messages in the list.
+      if (state.messages.length > state.maxMessagesInList) {
+        state.messages.slice(state.messages.length-state.maxMessagesInList, state.messages.length);
+      }
+
+      return historyMerged;
+    }
+    //ADD_ACTIVEUSERS replaces array of users in our internal activeUsers buffer.
+    case "ADD_ACTIVEUSERS": {
+       const activeUsersList: AppState = {
+        ...state,
+        activeUsers: [
+          ...action.payload as Array<string>
+        ]
+      };
+      console.log(activeUsersList);
+      return activeUsersList;
+    }
+    // Publishes a message to chat channel.
     case "SEND_MESSAGE": {
       state.pubnub.publish({
-        channel: state.defaultchannel,
+        channel: state.channel,
         message: {
           "message": action.payload,
-          "UserAvatar": state.selfAvatar,
+          "userAvatar": state.selfAvatar,
           "senderName": state.selfName,
         },
       });
@@ -158,19 +156,14 @@ export const appStateReducer = (state: AppState, action: Action): AppState => {
     default: {
       return state
     }
-
-
   }
 }
-
-
 
 export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
 
   const [state, dispatch] = useReducer(appStateReducer, appData)
   useEffect(() => {
     try {
- 
       //This where PubNub receives messages subscribed by the channel.
       state.pubnub.addListener({
         message: (messageEvent) => {
@@ -180,46 +173,64 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
             payload: messageEvent.message
           });
         },
-
+        presence: function(p) {
+          if (state.presenceLastUpdated != p.timestamp) { // Avoiding making multiple hereNow calls.
+            state.presenceLastUpdated = p.timestamp;
+            state.pubnub.hereNow(
+                {
+                    channels: [state.channel],
+                    includeUUIDs: true // In this demo we're using the uuid as the user's name. You could also use presence state to provide a username and more. In this app all we need is the UUID of online users.
+                },
+                (status, response) => {
+                  if (response.channels[state.channel].occupancy > 0) {
+                    var newActiveUsers: Array<string> = [];
+                    for (var i = response.channels[state.channel].occupancy-1; i >= 0 ; i--) {
+                      if (response.channels[state.channel].occupants[i].uuid !== generatedName) { // Don't include yourself on the list.
+                        newActiveUsers.push(response.channels[state.channel].occupants[i].uuid); 
+                      }
+                    }
+                    newActiveUsers.sort(); // This prevents a users name from moving in the list.
+                    dispatch({
+                      type: "ADD_ACTIVEUSERS",
+                      payload: newActiveUsers
+                    });
+                  }
+                }
+            );
+          }
+        }
       });
 
-    //   state.pubnub.addListener({
-    //     presence: function(p) {
-    //       console.log(JSON.stringify(p));
-    //         // handle presence
-    //         var action = p.action; // Can be join, leave, state-change or timeout
-    //         var channelName = p.channel; // The channel for which the message belongs
-    //         var occupancy = p.occupancy; // No. of users connected with the channel
-    //         var state = p.state; // User State
-    //         var channelGroup = p.subscription; //  The channel group or wildcard subscription match (if exists)
-    //         var publishTime = p.timestamp; // Publish timetoken
-    //         var timetoken = p.timetoken;  // Current timetoken
-    //         var uuid = p.uuid; // UUIDs of users who are connected with the channel
-    //     }
-    // });
-
-      //Lets' subscribe on the default channel.
-      state.pubnub.subscribe({
-        channels: [state.defaultchannel], // Only one channel, split in different rows if required and load in props, can be set by load balancer.
-        withPresence: true, // Presence can be set to false here.
-      });
-
-      //Get the history on the default channel.
-      state.pubnub.history(
-          {
-              channel: state.defaultchannel,
-              count: 100 // 100 is the default
-          },
-          (status, response) => {
-            if (typeof response.messages !== "undefined" && response.messages.length > 0) {
-              for (var i = 0; i <= response.messages.length; i++) {
+      if (state.history) {
+        //Get the history on the default channel.
+        state.pubnub.history(
+            {
+                channel: state.channel,
+                count: state.historyMax // Limit of 100 messages.
+            },
+            (status, response) => { 
+              if (typeof response.messages !== "undefined" && response.messages.length > 0) {
+                var historyMessages: Array<string> = [];
+                for (var i = 0; i <= response.messages.length; i++) {
+                  if (typeof response.messages[i] !== "undefined") {
+                    historyMessages.push(response.messages[i].entry)
+                  }
+                }
                 dispatch({
-                  type: "ADD_MESSAGE",
-                  payload: response.messages[i].entry
+                  type: "ADD_HISTORY",
+                  payload: historyMessages
                 });
               }
             }
-          }
+        );
+      }
+
+      // Subscribe on the default channel.
+      state.pubnub.subscribe(
+        {
+          channels: [state.channel], //Only one channel, split in different rows if required and load in props, can be set by load balancer.
+          withPresence: state.presence, 
+        }
       );
 
     } catch (e) {
@@ -227,7 +238,6 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
     }
 
   }, [appData]);
-
 
   return (
     <AppStateContext.Provider value={{ state, dispatch }}>
