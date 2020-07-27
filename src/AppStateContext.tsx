@@ -136,7 +136,6 @@ export const appStateReducer = (state: AppState, action: Action): AppState => {
           ...action.payload as Array<string>
         ]
       };
-      console.log(activeUsersList);
       return activeUsersList;
     }
     // Publishes a message to chat channel.
