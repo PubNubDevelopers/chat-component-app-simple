@@ -4,7 +4,6 @@ import {MessageListPanel} from '../MessageListPanel'
 import {MessageListPanelWrapper} from '../MessageListPanel/MessageListPanel.styles'
 import {ActiveUsersListPanel} from '../ActiveUsersListPanel'
 import {ActiveUsersListPanelWrapper} from '../ActiveUsersListPanel/ActiveUsersListPanel.styles'
-import {useAppState, AppStateProvider, AppStateContext} from '../../AppStateContext'
 
 interface ChatInitProps {
   //You can set props here to send to the ChatDemo component.

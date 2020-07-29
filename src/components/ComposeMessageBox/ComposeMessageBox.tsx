@@ -1,7 +1,7 @@
 import React, {useReducer, useEffect, useRef} from 'react'
 import PropTypes from 'prop-types'
 import {UserImgWrapper} from './ComposeMessageBox.styles'
-import {appData, AppState, AppStateProvider, useAppState, appStateReducer, Message} from '../../AppStateContext'
+import {useAppState} from '../../AppStateContext'
 
 interface ComposeMessageBoxProps {}
 export const ComposeMessageBox: React.SFC<ComposeMessageBoxProps> = (props: ComposeMessageBoxProps) => {
@@ -15,7 +15,7 @@ interface SendMessageProps {}
 
 export const SendMessageField = () => {
   const textAreaEl = useRef(null)
-  const [state, dispatch] = useReducer(appStateReducer, appData)
+  const {state, dispatch} = useAppState()
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -24,7 +24,6 @@ export const SendMessageField = () => {
         payload: textAreaEl.current.value,
       })
       textAreaEl.current.value = ''
-      console.log('do validate')
     }
     // textAreaEl.current.value =  "";
     // textAreaEl.current.focus();

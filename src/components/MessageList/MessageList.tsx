@@ -1,7 +1,7 @@
 import React, {useCallback, FunctionComponent, useReducer, useEffect, useState, useContext, useRef} from 'react'
 import {MessageListWrapper} from './MessageList.styles'
 import {Message} from '../Message/Message'
-import {appStateReducer, appData, useAppState} from '../../AppStateContext'
+import {useAppState} from '../../AppStateContext'
 import {useScrollPosition} from '@n8tb1t/use-scroll-position'
 
 interface MessageListProps {
