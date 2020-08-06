@@ -7,7 +7,9 @@ This project is a example of a group chat style chat experience using reusable c
 
 *Important Note:* This project is a work in progress. It may contain incomplete code. Pull requests to fix bugs and add features are always welcomed.
 
-TODO: ADD IMAGE HERE
+<a href="https://www.pubnub.com/">
+    <img alt="Component Chat Demo" src="https://github.com/PubNubDevelopers/chat-component-app-simple/raw/master/group-chat-components.png" width=800/>
+</a>
 
 ## Included Components:
 - Active Users - Displays a list of the active users in the chat and a total count.
