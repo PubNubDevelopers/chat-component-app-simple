@@ -1,10 +1,10 @@
 import styled from 'styled-components'
 
 export const ActiveUserWrapper = styled.div`
-  width: 150px;
+  width: 185px;
   padding-bottom: 40px;
   flex-shrink: 0;
-  border-bottom: 1px dashed #FFFFFF74;
+  border-bottom: 1px dashed black;
 `
 
 export const ActiveUserNameWrapper = styled.span`

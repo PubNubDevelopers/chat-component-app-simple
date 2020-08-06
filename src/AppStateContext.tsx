@@ -4,6 +4,7 @@ import PubNub, { SubscribeParameters } from "pubnub";
 import keyConfiguration from "../src/config/pubnub-keys.json";
 import { debug } from "console";
 import Blank from './';
+import DOMPurify from 'dompurify';
 
 const generatedName: string = generateName(); // This is the UUID that we use for identification. 
 
@@ -11,10 +12,11 @@ const generatedName: string = generateName(); // This is the UUID that we use fo
 export const appData: AppState = {
   presence: true, // Enable or disable presence.
   presenceLastUpdated: 0, // Last time that a presence event was used to update the activeUsers list. Used to prevent duplicate events from triggering multiple calls to hereNow. 
+  presenceOccupancy: 0, // How many active users there are.
   history: true, // Enable or disable history.
   historyMax: 10, // How many messages to load from history (max 100).
   maxMessagesInList: 200, // Max number of messages at most in the message list.
-  selfAvatar: "https://ui-avatars.com/api/?name="+generatedName+"?size=100&rounded=true&uppercase=true&bold=true&background=fff&color=000", //The URL for the avatar graphic file
+  selfAvatar: "https://ui-avatars.com/api/?name="+generatedName+"?size=100&rounded=true&uppercase=true&bold=true&background=edab63&color=FFF", //The URL for the avatar graphic file
   selfName: generatedName, // Set the display name to be the same as the UUID. You can make this whatever you want.
   messages: [], // Array of UserMessages.
   activeUsers: [], // Array of active users.
@@ -73,11 +75,16 @@ type Action =
     payload: Array<string>
   }
   | {
+    type: "UPDATE_OCCUPANCY",
+    payload: string
+  }
+  | {
     type: "SEND_MESSAGE",
     payload: {
       messageContent: string
     }
   }
+
 
 interface AppStateContextProps {
   state: AppState,
@@ -99,20 +106,21 @@ export const appStateReducer = (state: AppState, action: Action): AppState => {
         state.messages.shift();
       }
 
-      const debugMerged: AppState = {
+      const addMessage: AppState = {
         ...state,
         messages: [
           ...state.messages as Array<string>,
           {
-            ...action.payload as Array<string>
+            ...action.payload as string
           }
         ]
       };
 
-      return debugMerged;
+      return addMessage;
     }
      //ADD_HISTORY prepends array of messages to our internal MessageList buffer.
     case "ADD_HISTORY": {
+
        const historyMerged: AppState = {
         ...state,
         messages: [
@@ -138,14 +146,24 @@ export const appStateReducer = (state: AppState, action: Action): AppState => {
       };
       return activeUsersList;
     }
+    //UPDATE_OCCUPANCY updates the current count of users
+    case "UPDATE_OCCUPANCY": {
+
+      const occupantsUpdate: AppState = {
+        ...state,
+        presenceOccupancy: action.payload as string
+      };
+
+      return occupantsUpdate;
+    }
     // Publishes a message to chat channel.
     case "SEND_MESSAGE": {
+
       state.pubnub.publish({
         channel: state.channel,
         message: {
-          "message": action.payload,
-          "userAvatar": state.selfAvatar,
-          "senderName": state.selfName,
+          "message": DOMPurify.sanitize(action.payload as string) as string,
+          "senderName": state.selfName as string,
         },
       });
 
@@ -167,6 +185,7 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
       state.pubnub.addListener({
         message: (messageEvent) => {
           //console.log(`RECEIVING MESSAGE ${messageEvent.message.key}`);
+          messageEvent.message.message = DOMPurify.sanitize(messageEvent.message.message as string) as string;
           dispatch({
             type: "ADD_MESSAGE",
             payload: messageEvent.message
@@ -181,17 +200,23 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
                     includeUUIDs: true // In this demo we're using the uuid as the user's name. You could also use presence state to provide a username and more. In this app all we need is the UUID of online users.
                 },
                 (status, response) => {
+                  console.log(response);
                   if (response.channels[state.channel].occupancy > 0) {
                     var newActiveUsers: Array<string> = [];
-                    for (var i = response.channels[state.channel].occupancy-1; i >= 0 ; i--) {
-                      if (response.channels[state.channel].occupants[i].uuid !== generatedName) { // Don't include yourself on the list.
+                    for (var i = 0; i < response.channels[state.channel].occupancy; i++) {
+                      if (response.channels[state.channel].occupants[i].uuid !== state.selfName) {
                         newActiveUsers.push(response.channels[state.channel].occupants[i].uuid); 
                       }
                     }
+                    newActiveUsers.push(state.selfName); 
                     newActiveUsers.sort(); // This prevents a users name from moving in the list.
                     dispatch({
                       type: "ADD_ACTIVEUSERS",
                       payload: newActiveUsers
+                    });
+                    dispatch({
+                      type: "UPDATE_OCCUPANCY",
+                      payload: newActiveUsers.length
                     });
                   }
                 }
@@ -212,7 +237,8 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
                 var historyMessages: Array<string> = [];
                 for (var i = 0; i <= response.messages.length; i++) {
                   if (typeof response.messages[i] !== "undefined") {
-                    historyMessages.push(response.messages[i].entry)
+                    response.messages[i].entry.message = DOMPurify.sanitize(response.messages[i].entry.message as string) as string;
+                    historyMessages.push(response.messages[i].entry as string);
                   }
                 }
                 dispatch({
@@ -221,6 +247,35 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
                 });
               }
             }
+        );
+      }
+
+      if (state.presence) {
+        state.pubnub.hereNow(
+          {
+              channels: [state.channel],
+              includeUUIDs: true // In this demo we're using the uuid as the user's name. You could also use presence state to provide a username and more. In this app all we need is the UUID of online users.
+          },
+          (status, response) => {
+            if (response.channels[state.channel].occupancy > 0) {
+              var newActiveUsers: Array<string> = [];
+              for (var i = 0; i < response.channels[state.channel].occupancy; i++) {
+                if (response.channels[state.channel].occupants[i].uuid !== state.selfName) {
+                  newActiveUsers.push(response.channels[state.channel].occupants[i].uuid); 
+                }
+              }
+              newActiveUsers.push(state.selfName); 
+              newActiveUsers.sort(); // This prevents a users name from moving in the list.
+              dispatch({
+                type: "ADD_ACTIVEUSERS",
+                payload: newActiveUsers
+              });
+              dispatch({
+                type: "UPDATE_OCCUPANCY",
+                payload: newActiveUsers.length
+              });
+            }
+          }
         );
       }
 

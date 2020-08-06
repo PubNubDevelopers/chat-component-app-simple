@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 
 export const ActiveUsersListPanelWrapper = styled.div`
-  width: 150px;
+  width: 185px;
   height: 100%;
   top: 0px;
   z-index: 50;
@@ -13,12 +13,14 @@ export const ActiveUsersListPanelWrapper = styled.div`
   object-fit: contain;
   //background: url("images/scaffolding2.png") center repeat;
   //background-color: rgba(0, 255, 0, 1);
-  background-blend-mode: hard-light;
+  background: white;
+  //background-blend-mode: hard-light;
   border-right: 1px solid white;
 `
 
 export const ActiveUsersHeader = styled.div`
-  color: white;
+  //color: white;
+  background: black;
   position: absolute;
   top: 0;
   left: 0;
