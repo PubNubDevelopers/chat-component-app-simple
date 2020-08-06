@@ -3,7 +3,7 @@
 
 This project is a collection of reusable chat components that makes it simple to get started with PubNub in React. Each of the components are designed to be reusable, expandable, and easy to use in another React application. Anyone can build a robust chat app by using these components as a starting point. 
 
-This project is a example of a group chat style chat experience using reusable chat components. It includes the basic features you would expect from a group chat.
+This project is an example of a group chat style chat experience using reusable chat components. It includes the basic features you would expect from a group chat.
 
 *Important Note:* This project is a work in progress. It may contain incomplete code. Pull requests to fix bugs and add features are always welcomed.
 
@@ -20,7 +20,7 @@ This project is a example of a group chat style chat experience using reusable c
 - Emoji - Adds emojis to the Compose component.
 - Message Preview - Adds message previews to the Active Users component.
 - Typing Indicator - Add typing indicator to the Compose component.
-- Read Receipts - Updates Message List component with the timestamp messages were read. 
+- Read Receipts - Updates Message List component with a timestamp of when messages were last read. 
 
 ## Notable Features:
 - Group style chat with automatic creation of users.
