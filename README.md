@@ -3,7 +3,7 @@
 
 This project is a collection of reusable chat components that makes it simple to get started with PubNub in React. Each of the components are designed to be reusable, expandable, and easy to use in another React application. Anyone can build a robust chat app by using these components as a starting point. 
 
-[Support Chat App](https://github.com/PubNubDevelopers/chat-component-app-live-support) was built using these components.
+[Support Chat App](https://github.com/PubNubDevelopers/chat-component-app-live-support) was built using the components found in this project.
 
 This project is an example of a group chat style chat experience using reusable chat components. It includes the basic features you would expect from a group chat.
 
