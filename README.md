@@ -1,5 +1,5 @@
 # Simple Group Chat App 
-### Featuring Reusable PubNub React Chat components 
+### Featuring Reusable PubNub React Chat Components 
 
 This project is a collection of reusable chat components that makes it simple to get started with PubNub in React. Each of the components are designed to be reusable, expandable, and easy to use in another React application. Anyone can build a robust chat app by using these components as a starting point. 
 
