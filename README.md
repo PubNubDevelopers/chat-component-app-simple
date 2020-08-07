@@ -68,7 +68,7 @@ This project is an example of a group chat style chat experience using reusable 
     git clone https://github.com/PubNubDevelopers/chat-component-app-simple.git
     ```
 
-1. Navigate into repo:
+1. Navigate into the repository.
 
     ```bash
     cd chat-component-app-simple
