@@ -15,4 +15,5 @@ export const ChatDemoWrapper = styled.div`
   margin: none;
   height: 100%;
   width: 100%;
+  min-width: 500px;
 `

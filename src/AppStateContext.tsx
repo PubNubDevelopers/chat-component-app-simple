@@ -233,7 +233,7 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
                 count: state.historyMax // Limit of 100 messages.
             },
             (status, response) => { 
-              if (typeof response.messages !== "undefined" && response.messages.length > 0) {
+              if (response.messages.length > 0) {
                 var historyMessages: Array<string> = [];
                 for (var i = 0; i <= response.messages.length; i++) {
                   if (typeof response.messages[i] !== "undefined") {
