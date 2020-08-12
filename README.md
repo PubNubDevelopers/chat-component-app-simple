@@ -1,13 +1,17 @@
 # Simple Group Chat App 
-### Featuring Reusable PubNub React Chat components 
+### Featuring Reusable PubNub React Chat Components 
 
 This project is a collection of reusable chat components that makes it simple to get started with PubNub in React. Each of the components are designed to be reusable, expandable, and easy to use in another React application. Anyone can build a robust chat app by using these components as a starting point. 
 
-This project is a example of a group chat style chat experience using reusable chat components. It includes the basic features you would expect from a group chat.
+[Support Chat App](https://github.com/PubNubDevelopers/chat-component-app-live-support) was built using the components found in this project.
+
+This project is an example of a group chat style chat experience using reusable chat components. It includes the basic features you would expect from a group chat.
 
 *Important Note:* This project is a work in progress. It may contain incomplete code. Pull requests to fix bugs and add features are always welcomed.
 
-TODO: ADD IMAGE HERE
+<a href="https://www.pubnub.com/">
+    <img alt="Component Chat Demo" src="https://github.com/PubNubDevelopers/chat-component-app-simple/raw/master/group-chat-components.png" width=800/>
+</a>
 
 ## Included Components:
 - Active Users - Displays a list of the active users in the chat and a total count.
@@ -16,9 +20,8 @@ TODO: ADD IMAGE HERE
 
 ## Components Coming Soon:
 - Emoji - Adds emojis to the Compose component.
-- Message Preview - Adds message previews to the Active Users component.
 - Typing Indicator - Add typing indicator to the Compose component.
-- Read Receipts - Updates Message List component with the timestamp messages were read. 
+- Read Receipts - Updates Message List component with a timestamp of when messages were last read. 
 
 ## Notable Features:
 - Group style chat with automatic creation of users.
@@ -65,7 +68,7 @@ TODO: ADD IMAGE HERE
     git clone https://github.com/PubNubDevelopers/chat-component-app-simple.git
     ```
 
-1. Navigate into repo:
+1. Navigate into the repository.
 
     ```bash
     cd chat-component-app-simple
