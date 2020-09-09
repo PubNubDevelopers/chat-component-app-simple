@@ -191,7 +191,6 @@ export const AppStateProvider = ({ children }: React.PropsWithChildren<{}>) => {
           });
         },
         presence: function(p) {
-          console.log(p);
           if (p.action == "join") {
             if ((!state.activeUsers.includes(p.uuid)) ) { // Only add user if they are missing from the list.
               newActiveUsers.push(p.uuid); 
