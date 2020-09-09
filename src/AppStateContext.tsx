@@ -75,14 +75,6 @@ type Action =
     payload: Array<string>
   }
   | {
-    type: "ADD_ACTIVEUSERS",
-    payload: Array<string>
-  }
-  | {
-    type: "REMOVE_ACTIVEUSERS",
-    payload: Array<string>
-  }
-  | {
     type: "UPDATE_OCCUPANCY",
     payload: string
   }
